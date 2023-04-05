@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"key-value-system/db"
@@ -9,44 +10,31 @@ import (
 	"key-value-system/models"
 	"key-value-system/requests"
 	"strings"
-
-	"github.com/gin-gonic/gin"
 )
 
 func StoreHead(request requests.CreateHeadRequest) error {
-	_, err := db.PrepareAndExec(db.GetSql(db.INSERT_HEAD_SQL), request.Key)
+	_, err := db.DB.Exec(db.GetSql(db.INSERT_HEAD_SQL), request.Key)
 	return err
 }
 
-func StoreNode(request requests.CreateNodeRequest, c *gin.Context) error {
-	tx, err := db.DB.BeginTx(c, nil)
+func StoreNode(request requests.CreateNodeRequest, ctx context.Context) error {
+	tx, err := db.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	stmt, preErr := tx.Prepare(db.GetSql(db.INSERT_NODE_SQL))
-	if preErr != nil {
-		return preErr
-	}
-
-	_, err = stmt.Exec(request.Key, request.Value)
+	_, err = db.DB.Exec(db.GetSql(db.INSERT_NODE_SQL), request.Key, request.Value)
 	if err != nil {
 		return err
 	}
 
-	stmt, preErr = tx.Prepare(db.GetSql(db.UPDATE_NODE_SQL))
-	if preErr != nil {
-		return preErr
-	}
-
-	_, err = stmt.Exec(request.Key, request.Prev)
+	_, err = db.DB.Exec(db.GetSql(db.UPDATE_NODE_SQL), request.Key, request.Prev)
 	if err != nil {
 		return err
 	}
 
-	err = tx.Commit()
-	return err
+	return tx.Commit()
 }
 
 func GetHead(key string) (*models.Head, error) {
@@ -92,7 +80,7 @@ func RemoveHead(key string) error {
 	keysInterface := helper.ToInterface(keys)
 
 	// Delete all nodes at once
-	result, err := db.DB.Exec(GetDeleteNodesSQL(db.DELETE_NODES_SQL, keys), keysInterface...)
+	result, err := db.DB.Exec(GetDynamicParametersSQL(db.DELETE_NODES_SQL, keys), keysInterface...)
 	if err != nil {
 		return err
 	}
@@ -114,7 +102,7 @@ func RemoveHead(key string) error {
  * trasfer from `DELETE FROM table WHERE key IN ($1)`
  * to 			`DELETE FROM table WHERE key IN ($1,$2...)` (accords to keys' length)
  */
-func GetDeleteNodesSQL(originalSql string, keys []string) string {
+func GetDynamicParametersSQL(originalSql string, keys []string) string {
 	var parameters []string
 	for index := range keys {
 		parameters = append(parameters, fmt.Sprintf("$%d", index+1))
@@ -163,7 +151,7 @@ func RemoveNode(key string) error {
 		return err
 	}
 
-	result, err := db.PrepareAndExec(db.GetSql(db.DELETE_NODE_SQL), key)
+	result, err := db.DB.Exec(db.GetSql(db.DELETE_NODE_SQL), key)
 	if err != nil {
 		return err
 	}

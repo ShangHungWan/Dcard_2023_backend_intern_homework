@@ -19,6 +19,7 @@ const GET_HEAD_SQL string = "SELECT key, next, created_at, updated_at FROM %[1]s
 const GET_NODE_SQL string = "SELECT key, value, next, created_at, updated_at FROM %[1]s WHERE key = $1 and value IS NOT NULL"
 const DELETE_NODE_SQL string = "DELETE FROM %[1]s WHERE key = $1"
 const DELETE_NODES_SQL string = "DELETE FROM %[1]s WHERE key IN ($1)"
+const DELETE_ALL_SQL string = "TRUNCATE TABLE %[1]s"
 
 var DB *sql.DB
 
@@ -29,15 +30,6 @@ func init() {
 		log.Fatal(err.Error())
 	}
 	DB = db
-}
-
-func PrepareAndExec(sql string, args ...any) (sql.Result, error) {
-	stmt, err := DB.Prepare(sql)
-	if err != nil {
-		return nil, err
-	}
-
-	return stmt.Exec(args...)
 }
 
 func GetSql(sql string) string {

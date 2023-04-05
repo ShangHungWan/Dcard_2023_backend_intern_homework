@@ -16,9 +16,9 @@ func Run(listen string) {
 
 func registerRouter(router *gin.Engine) {
 	router.POST("/head", controllers.StoreHead)
-	router.POST("/page", controllers.StoreNode)
+	router.POST("/node", controllers.StoreNode)
 	router.GET("/head/:key", controllers.ShowHead)
-	router.GET("/page/:key", controllers.ShowNode)
+	router.GET("/node/:key", controllers.ShowNode)
 	router.DELETE("/head/:key", controllers.RemoveHead)
-	router.DELETE("/page/:key", controllers.RemoveNode)
+	router.DELETE("/node/:key", controllers.RemoveNode)
 }
