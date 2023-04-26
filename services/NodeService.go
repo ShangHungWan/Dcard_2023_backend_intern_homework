@@ -99,7 +99,7 @@ func RemoveHead(key string) error {
 
 /*
  * In order to give dynamic parameters, do string substitution. For example:
- * trasfer from `DELETE FROM table WHERE key IN ($1)`
+ * transfer from `DELETE FROM table WHERE key IN ($1)`
  * to 			`DELETE FROM table WHERE key IN ($1,$2...)` (accords to keys' length)
  */
 func GetDynamicParametersSQL(originalSql string, keys []string) string {

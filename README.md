@@ -9,7 +9,7 @@ Hi, I'm Sun. This is my [Dcard's 2023 backend intern homework](https://drive.goo
 
 ## Installation
 
-1. Set up enviroment configurations
+1. Set up environment configurations
 
 ```sh
 cp .env.example .env
@@ -21,6 +21,16 @@ cp docker-compose.yml.prod.example docker-compose.yml # There are two example fi
 
 ```sh
 docker-compose up -d
+```
+
+3. Run migrations
+
+Install golang-migrate and run commands below. ([install it first](https://github.com/golang-migrate/migrate/tree/master/cmd/migrate))
+
+```sh
+migrate -database postgres://postgres:{password}@db:5432/postgres?sslmode=disable -source file://migrations up # change the password here
+# and run for testing database
+migrate -database postgres://postgres:{password}@db:5432/testing?sslmode=disable -source file://migrations up # change the password here
 ```
 
 Done! the application is running!
@@ -131,10 +141,10 @@ Why use PostgreSQL for this key-value system?
 First. Because in the system, the two neighboring nodes are linked together. So we can benefit from the `cascade` feature in relational database. For example, if there are nodes like:
 
 ```txt
-nodeA -> nodeB -> nodeC
+NodeA -> NodeB -> NodeC
 ```
 
-When we delete NodeC, we need to update nodeB after deletion successful. But we have linked two system in our database. So we can do it by simply set `cascade` as `set null on delete`.
+When we delete `NodeC`, we need to update `NodeB`'s link after deletion successful. But we have linked two node in our database. So we can do it by simply set `cascade` as `set null on delete`.
 
 Second. Because the structure of the table is fixed. We can use the same schema to finish this system.
 
@@ -144,10 +154,11 @@ Base on the reason above, I choose the relational database. And I want to use Po
 
 There are some more features I plan to do, but there is no time QQ
 
-- [ ] Use migration instead of `.sql`
+- [x] Use migration
 - [ ] Refactor with DI
 - [ ] Add a reverse proxy in front of the application
 - [ ] More formal API documents
 - [ ] Automation testing by GitHub Actions
 - [ ] Package Release by GitHub Actions
 - [ ] Use gRPC instead of RESTful API
+- [ ] Stress testing and benchmark
